@@ -18,10 +18,20 @@ if (!isset($_SESSION['username'])) {
 
 // Fetch the logged-in user's name and user_id from the session
 $loggedInUser = $_SESSION['username'];
-$userIdQuery = $conn->query("SELECT user_id FROM users WHERE name = '$loggedInUser'");
-$userId = $userIdQuery->fetch_assoc()['user_id'];
+$userQuery = $conn->query("SELECT user_id, status FROM users WHERE name = '$loggedInUser'");
+$userData = $userQuery->fetch_assoc();
 
-// 🚨 If status is NOT "Active", log out the user
+if (!$userData) {
+    // If no user data is found, destroy the session and redirect
+    session_destroy();
+    header("Location: clientsigninup.php");
+    exit();
+}
+
+$userId = $userData['user_id'];
+$status = strtolower($userData['status']); // Ensure case consistency
+
+// If status is NOT "active", log out the user
 if ($status !== 'active') {
     session_destroy();
     echo "<script>alert('Your account has been deactivated. You have been logged out.'); window.location.href='clientsigninup.php';</script>";
